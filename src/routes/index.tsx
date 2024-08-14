@@ -2,14 +2,32 @@ import { component$, $, useResource$, Resource} from "@builder.io/qwik";
 import { server$ } from '@builder.io/qwik-city';
 import { useSignal } from "@builder.io/qwik";
 import type { DocumentHead} from '@builder.io/qwik-city';
-import { sql } from "@vercel/postgres";
+import pkg from 'pg';
+const {Pool} = pkg;
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '@prisma/client'
+
+const connectionString = `localhost`
+
+
+
 
 export const searchUsers = server$(async () =>{
-  const { rows } = await sql`SELECT * from users where id=${Math.floor(Math.random() * 10)+1}`
-  return rows; 
-})
+  const pool = new Pool({ connectionString })
+  const adapter = new PrismaPg(pool)
+  const prisma = new PrismaClient({ adapter })
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: '1',
+    },
+  })
+  console.log(user)
+    return user; 
+  })
 
 export default component$(() => {
+
   const changeUser = useSignal(0);
 
   const useChangeUser = useResource$(async ({ track }) => {
@@ -20,7 +38,6 @@ export default component$(() => {
 
   const handleClick = $(async () => {
     changeUser.value++
-    console.log(changeUser.value)
   });
 
   return (
@@ -32,7 +49,7 @@ export default component$(() => {
         onResolved={(users) => (
           <ul>
             {users.map((user) => (
-              <li key={user.id}>{user.name} - {user.country}</li>
+              <li key={user.id}>{user.firstname} - {user.lastname}</li>
             ))}
           </ul>
         )}
