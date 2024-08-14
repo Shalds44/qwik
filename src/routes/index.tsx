@@ -4,48 +4,42 @@ import { useSignal } from "@builder.io/qwik";
 import type { DocumentHead} from '@builder.io/qwik-city';
 import { sql } from "@vercel/postgres";
 
-export const searchCustomers = server$(async () =>{
-  const idArray = [
-    '3958dc9e-712f-4377-85e9-fec4b6a6442a',
-    '76d65c26-f784-44a2-ac19-586678f7c2f2',
-    'cc27c14a-0acf-4f4a-a6c9-d45682c144b9',
-    '50ca3e18-62cd-11ee-8c99-0242ac120002'
-  ]
-  const { rows } = await sql`SELECT * from customers where id=${idArray[Math.floor(Math.random() * 4)]}`
+export const searchUsers = server$(async () =>{
+  const { rows } = await sql`SELECT * from users where id=${Math.floor(Math.random() * 10)+1}`
   return rows; 
 })
 
 export default component$(() => {
-  const changeCustomer = useSignal(0);
+  const changeUser = useSignal(0);
 
-  const useChangeCustomer = useResource$(async ({ track }) => {
+  const useChangeUser = useResource$(async ({ track }) => {
 
-    track(() => changeCustomer.value);
-      return await searchCustomers()
+    track(() => changeUser.value);
+      return await searchUsers()
   })
 
   const handleClick = $(async () => {
-    changeCustomer.value++
-    console.log(changeCustomer.value)
+    changeUser.value++
+    console.log(changeUser.value)
   });
 
   return (
     <div>
       <Resource
-        value={useChangeCustomer}
+        value={useChangeUser}
         onPending={() => <p>Chargement...</p>}
         onRejected={() => <p>Erreur lors du chargement des utilisateurs.</p>}
         onResolved={(users) => (
           <ul>
             {users.map((user) => (
-              <li key={user.id}>{user.name} - {user.email}</li>
+              <li key={user.id}>{user.name} - {user.country}</li>
             ))}
           </ul>
         )}
       />
       <button 
         onClick$={handleClick}>
-        Change Customer
+        Change User
       </button>
     </div>
   );
